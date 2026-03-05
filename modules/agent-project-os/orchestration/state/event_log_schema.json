@@ -4,10 +4,11 @@
   "type": "object",
   "required": ["ts", "actor", "event", "ticket"],
   "properties": {
-    "ts": {"type": "string"},
+    "ts": {"type": "string", "format": "date-time"},
     "actor": {"type": "string"},
     "event": {"type": "string"},
     "ticket": {"type": "string"},
     "details": {"type": "object"}
-  }
+  },
+  "additionalProperties": true
 }
