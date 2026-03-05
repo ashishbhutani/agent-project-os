@@ -1,12 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Agent Project OS Run State",
+  "title": "Agent Project OS Runtime State",
   "type": "object",
-  "required": ["phase", "integration_branch", "workers"],
+  "required": ["role", "id", "status", "updated_at_utc"],
   "properties": {
-    "phase": {"type": "string"},
-    "integration_branch": {"type": "string"},
-    "workers": {"type": "array", "items": {"type": "string"}},
-    "last_heartbeat": {"type": "string"}
-  }
+    "role": {"type": "string", "enum": ["worker", "mayor"]},
+    "id": {"type": "string"},
+    "pid": {"type": "integer"},
+    "host": {"type": "string"},
+    "status": {"type": "string"},
+    "current_ticket": {"type": "string"},
+    "last_ticket": {"type": "string"},
+    "last_error": {"type": "string"},
+    "updated_at_utc": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true
 }

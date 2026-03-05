@@ -11,13 +11,7 @@ Usage:
     --integration-branch phase/P2-integration \
     --base-branch main \
     --full-test-cmd '<command>' \
-    [--lock-file planning/.claim.lock] [--poll-seconds 15] [--once]
-
-Mayor behavior:
-1. scans tracker for in_review tickets whose blockers are done,
-2. merges ticket/<KEY> branch into integration branch,
-3. runs full test command,
-4. marks ticket done on success (or blocked on failure/conflict).
+    [--lock-file planning/.claim.lock] [--state-dir planning/state] [--poll-seconds 15] [--once]
 USAGE
 }
 
@@ -27,6 +21,7 @@ DEPS=""
 INTEGRATION_BRANCH=""
 BASE_BRANCH="main"
 LOCK_FILE="planning/.claim.lock"
+STATE_DIR="planning/state"
 POLL_SECONDS="15"
 ONCE="false"
 FULL_TEST_CMD=""
@@ -39,6 +34,7 @@ while [[ $# -gt 0 ]]; do
     --integration-branch) INTEGRATION_BRANCH="$2"; shift 2 ;;
     --base-branch) BASE_BRANCH="$2"; shift 2 ;;
     --lock-file) LOCK_FILE="$2"; shift 2 ;;
+    --state-dir) STATE_DIR="$2"; shift 2 ;;
     --poll-seconds) POLL_SECONDS="$2"; shift 2 ;;
     --full-test-cmd) FULL_TEST_CMD="$2"; shift 2 ;;
     --once) ONCE="true"; shift ;;
@@ -51,6 +47,19 @@ if [[ -z "$PHASE" || -z "$TRACKER" || -z "$DEPS" || -z "$INTEGRATION_BRANCH" || 
   usage
   exit 2
 fi
+
+state_update() {
+  python3 modules/agent-project-os/orchestration/scripts/write_runtime_state.py \
+    --state-dir "$STATE_DIR" \
+    --role mayor \
+    --id "$PHASE" \
+    --status "$1" \
+    --current-ticket "${2:-}" \
+    --last-ticket "${3:-}" \
+    --last-error "${4:-}" \
+    --event "${5:-}" \
+    --details "${6:-}" >/dev/null
+}
 
 ensure_integration_branch() {
   if git show-ref --verify --quiet "refs/heads/$INTEGRATION_BRANCH"; then
@@ -132,6 +141,7 @@ process_ticket() {
   local ticket="$1"
   local branch="ticket/$ticket"
 
+  state_update "processing_ticket" "$ticket" "$ticket" "" "mayor.ticket.processing" "Processing in_review ticket"
   echo "[mayor] processing $ticket from $branch"
 
   if ! git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
@@ -139,9 +149,11 @@ process_ticket() {
   fi
   if ! git show-ref --verify --quiet "refs/heads/$branch"; then
     mark_status "$ticket" "blocked" "fail" "Mayor: missing branch $branch"
+    state_update "blocked" "$ticket" "$ticket" "Missing branch $branch" "mayor.ticket.blocked" "Missing ticket branch"
     return 1
   fi
 
+  state_update "merging" "$ticket" "$ticket" "" "mayor.merge.started" "Merging ticket branch"
   set +e
   git merge --no-ff "$branch" -m "mayor merge: $ticket into $INTEGRATION_BRANCH" >/tmp/mayor-merge.log 2>&1
   local mrc=$?
@@ -150,9 +162,11 @@ process_ticket() {
   if [[ $mrc -ne 0 ]]; then
     git merge --abort >/dev/null 2>&1 || true
     mark_status "$ticket" "blocked" "fail" "Mayor: merge conflict or merge failure"
+    state_update "blocked" "$ticket" "$ticket" "Merge conflict/failure" "mayor.merge.failed" "Merge conflict or failure"
     return 1
   fi
 
+  state_update "running_tests" "$ticket" "$ticket" "" "mayor.tests.started" "Running full-suite tests"
   set +e
   eval "$FULL_TEST_CMD" >/tmp/mayor-test.log 2>&1
   local trc=$?
@@ -160,22 +174,27 @@ process_ticket() {
 
   if [[ $trc -ne 0 ]]; then
     mark_status "$ticket" "blocked" "fail" "Mayor: full-suite failed on integration branch"
+    state_update "blocked" "$ticket" "$ticket" "Full-suite test failed" "mayor.tests.failed" "Integration test gate failed"
     return 1
   fi
 
   local sha
   sha=$(git rev-parse --short HEAD)
   mark_status "$ticket" "done" "pass" "Mayor merged and validated on integration branch" "$sha"
+  state_update "idle" "" "$ticket" "" "mayor.ticket.done" "Ticket merged and marked done"
   return 0
 }
 
 ensure_integration_branch
+state_update "idle" "" "" "" "mayor.loop.started" "Mayor loop started"
 
 while true; do
+  state_update "scanning" "" "" "" "mayor.scan" "Scanning for eligible in_review tickets"
   mapfile -t tickets < <(eligible_in_review)
 
   if [[ ${#tickets[@]} -eq 0 ]]; then
     echo "[mayor] no eligible in_review tickets"
+    state_update "sleeping" "" "" "" "mayor.sleeping" "No eligible in_review tickets"
     if [[ "$ONCE" == "true" ]]; then
       exit 0
     fi
