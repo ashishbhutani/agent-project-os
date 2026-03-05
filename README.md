@@ -23,6 +23,7 @@ Parallel agent execution usually breaks due to duplicate claims, broken dependen
 ## Repository Layout
 - `modules/agent-project-os/planning`: templates, prompts, tracker/dependency scripts.
 - `modules/agent-project-os/orchestration`: worker/mayor/team loops and policies.
+- `modules/agent-project-os/orchestration/adapters`: provider-specific worker adapters (includes Codex adapter).
 - `modules/agent-project-os/observability`: dashboard server and run script.
 - `modules/agent-project-os/common`: shared schemas.
 - `docs/`: architecture and runbook.
@@ -48,6 +49,10 @@ Run workers/mayor with shared state directory:
 modules/agent-project-os/orchestration/scripts/run_worker_loop.sh ... --state-dir planning/state
 modules/agent-project-os/orchestration/scripts/run_mayor_loop.sh ... --state-dir planning/state
 ```
+
+For Codex-based unattended workers, prefer:
+`modules/agent-project-os/orchestration/adapters/codex_exec_worker.sh`
+as the `--agent-cmd-template` target.
 
 Run dashboard:
 ```bash

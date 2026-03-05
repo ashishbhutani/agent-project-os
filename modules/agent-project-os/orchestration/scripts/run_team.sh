@@ -14,9 +14,18 @@ MAYOR_CMD=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --workers) WORKERS="$2"; shift 2 ;;
-    --worker-cmd-template) WORKER_CMD_TEMPLATE="$2"; shift 2 ;;
-    --mayor-cmd) MAYOR_CMD="$2"; shift 2 ;;
+    --workers)
+      if [[ $# -lt 2 ]]; then echo "Missing value for --workers"; usage; exit 2; fi
+      WORKERS="$2"; shift 2
+      ;;
+    --worker-cmd-template)
+      if [[ $# -lt 2 ]]; then echo "Missing value for --worker-cmd-template"; usage; exit 2; fi
+      WORKER_CMD_TEMPLATE="$2"; shift 2
+      ;;
+    --mayor-cmd)
+      if [[ $# -lt 2 ]]; then echo "Missing value for --mayor-cmd"; usage; exit 2; fi
+      MAYOR_CMD="$2"; shift 2
+      ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown arg: $1"; usage; exit 2 ;;
   esac

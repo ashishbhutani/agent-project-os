@@ -9,3 +9,6 @@ Expected contract (conceptual):
 - stop_worker(agent_id)
 
 Current runtime uses command templates in shell scripts; adapters can replace this with richer provider SDK usage.
+
+## Included adapter
+- `codex_exec_worker.sh`: runs one ticket through `codex exec` in a dedicated worktree, pushes `ticket/<KEY>`, and updates tracker to `in_review` (or `blocked` on failure).

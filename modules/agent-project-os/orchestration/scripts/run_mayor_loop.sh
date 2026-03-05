@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APOS_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PLANNING_SCRIPTS="$APOS_ROOT/planning/scripts"
+RUNTIME_STATE_WRITER="$APOS_ROOT/orchestration/scripts/write_runtime_state.py"
+
 usage() {
   cat <<USAGE
 Usage:
@@ -49,7 +54,7 @@ if [[ -z "$PHASE" || -z "$TRACKER" || -z "$DEPS" || -z "$INTEGRATION_BRANCH" || 
 fi
 
 state_update() {
-  python3 modules/agent-project-os/orchestration/scripts/write_runtime_state.py \
+  python3 "$RUNTIME_STATE_WRITER" \
     --state-dir "$STATE_DIR" \
     --role mayor \
     --id "$PHASE" \
@@ -72,7 +77,7 @@ ensure_integration_branch() {
 }
 
 eligible_in_review() {
-python3 - <<PY
+  python3 - <<PY
 import csv
 from pathlib import Path
 
@@ -134,7 +139,7 @@ mark_status() {
     args+=(--merge-commit "$merge_commit")
   fi
 
-  python3 modules/agent-project-os/planning/scripts/update_tracker_status.py "${args[@]}" >/dev/null
+  python3 "$PLANNING_SCRIPTS/update_tracker_status.py" "${args[@]}" >/dev/null
 }
 
 process_ticket() {
@@ -190,7 +195,10 @@ state_update "idle" "" "" "" "mayor.loop.started" "Mayor loop started"
 
 while true; do
   state_update "scanning" "" "" "" "mayor.scan" "Scanning for eligible in_review tickets"
-  mapfile -t tickets < <(eligible_in_review)
+  tickets=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && tickets+=("$line")
+  done < <(eligible_in_review)
 
   if [[ ${#tickets[@]} -eq 0 ]]; then
     echo "[mayor] no eligible in_review tickets"
