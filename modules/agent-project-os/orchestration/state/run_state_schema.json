@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Project OS Run State",
+  "type": "object",
+  "required": ["phase", "integration_branch", "workers"],
+  "properties": {
+    "phase": {"type": "string"},
+    "integration_branch": {"type": "string"},
+    "workers": {"type": "array", "items": {"type": "string"}},
+    "last_heartbeat": {"type": "string"}
+  }
+}

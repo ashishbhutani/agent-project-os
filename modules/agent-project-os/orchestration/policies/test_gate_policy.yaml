@@ -1,0 +1,11 @@
+worker_gate:
+  required: true
+  scope: ticket_tests
+
+mayor_gate:
+  required: true
+  scope: full_suite_on_integration_branch
+
+failure_action:
+  mark_status: blocked
+  require_rework: true

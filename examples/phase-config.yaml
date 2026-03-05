@@ -1,0 +1,11 @@
+phase: P2
+tracker: planning/jira_phase2_tracker.csv
+dependencies: planning/jira_phase2_dependencies.csv
+contracts: docs/architecture/contracts.md
+handoff: planning/agent_handoff.md
+integration_branch: phase/P2-integration
+base_branch: main
+worker_count: 4
+claim_lock: planning/.claim.lock
+full_test_cmd: "PYTHONPATH=algos/hnsw-core/src:services/vector-search-service/src python3 -m pytest -q algos/hnsw-core/tests services/vector-search-service/tests"
+worker_command_template: "codex run --ticket {ticket} --tracker {tracker} --deps {deps} --contracts {contracts} --handoff {handoff}"

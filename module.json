@@ -1,0 +1,12 @@
+{
+  "name": "agent-project-os",
+  "version": "0.1.0",
+  "description": "Planning and orchestration OS for deterministic multi-agent software delivery",
+  "entrypoints": {
+    "planning_validate": "modules/agent-project-os/planning/scripts/validate_dependencies.py",
+    "planning_claim": "modules/agent-project-os/planning/scripts/claim_next_ticket.sh",
+    "worker_loop": "modules/agent-project-os/orchestration/scripts/run_worker_loop.sh",
+    "mayor_loop": "modules/agent-project-os/orchestration/scripts/run_mayor_loop.sh",
+    "team_loop": "modules/agent-project-os/orchestration/scripts/run_team.sh"
+  }
+}

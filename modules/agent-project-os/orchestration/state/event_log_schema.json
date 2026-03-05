@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Project OS Event",
+  "type": "object",
+  "required": ["ts", "actor", "event", "ticket"],
+  "properties": {
+    "ts": {"type": "string"},
+    "actor": {"type": "string"},
+    "event": {"type": "string"},
+    "ticket": {"type": "string"},
+    "details": {"type": "object"}
+  }
+}
