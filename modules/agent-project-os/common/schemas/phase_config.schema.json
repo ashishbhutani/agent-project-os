@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Phase Config",
+  "type": "object",
+  "required": ["phase", "tracker", "dependencies", "integration_branch", "full_test_cmd"],
+  "properties": {
+    "phase": {"type": "string"},
+    "tracker": {"type": "string"},
+    "dependencies": {"type": "string"},
+    "contracts": {"type": "string"},
+    "handoff": {"type": "string"},
+    "integration_branch": {"type": "string"},
+    "base_branch": {"type": "string"},
+    "worker_count": {"type": "integer", "minimum": 1},
+    "claim_lock": {"type": "string"},
+    "full_test_cmd": {"type": "string"},
+    "worker_command_template": {"type": "string"}
+  }
+}

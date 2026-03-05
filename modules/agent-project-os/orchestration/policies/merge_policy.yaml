@@ -1,0 +1,4 @@
+merge_policy: mayor_only
+worker_merge_allowed: false
+integration_branch_required: true
+final_pr_required: true
