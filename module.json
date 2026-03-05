@@ -8,6 +8,7 @@
     "worker_loop": "modules/agent-project-os/orchestration/scripts/run_worker_loop.sh",
     "mayor_loop": "modules/agent-project-os/orchestration/scripts/run_mayor_loop.sh",
     "team_loop": "modules/agent-project-os/orchestration/scripts/run_team.sh",
+    "codex_worker_adapter": "modules/agent-project-os/orchestration/adapters/codex_exec_worker.sh",
     "dashboard": "modules/agent-project-os/observability/scripts/run_dashboard.sh"
   }
 }

@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APOS_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PLANNING_SCRIPTS="$APOS_ROOT/planning/scripts"
+RUNTIME_STATE_WRITER="$APOS_ROOT/orchestration/scripts/write_runtime_state.py"
+
 usage() {
   cat <<USAGE
 Usage:
@@ -50,7 +55,7 @@ if [[ -z "$AGENT_ID" || -z "$TRACKER" || -z "$DEPS" || -z "$CONTRACTS" || -z "$H
 fi
 
 state_update() {
-  python3 modules/agent-project-os/orchestration/scripts/write_runtime_state.py \
+  python3 "$RUNTIME_STATE_WRITER" \
     --state-dir "$STATE_DIR" \
     --role worker \
     --id "$AGENT_ID" \
@@ -64,7 +69,7 @@ state_update() {
 
 claim_next() {
   local out
-  if ! out=$(./modules/agent-project-os/planning/scripts/claim_next_ticket.sh "$AGENT_ID" "$TRACKER" "$DEPS" "$CLAIM_LOCK" 2>&1); then
+  if ! out=$("$PLANNING_SCRIPTS/claim_next_ticket.sh" "$AGENT_ID" "$TRACKER" "$DEPS" "$CLAIM_LOCK" 2>&1); then
     echo "$out"
     return 1
   fi
@@ -74,7 +79,7 @@ claim_next() {
 mark_blocked() {
   local ticket="$1"
   local note="$2"
-  python3 modules/agent-project-os/planning/scripts/update_tracker_status.py \
+  python3 "$PLANNING_SCRIPTS/update_tracker_status.py" \
     --tracker "$TRACKER" \
     --lock-file "$CLAIM_LOCK" \
     --ticket "$ticket" \
